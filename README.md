@@ -8,8 +8,8 @@ The project evolves from a **hybrid AI-based forecasting system (Phase I)** to a
 
 📄 **Thesis References:**
 
-* Phase I Report: 
-* Phase II Final Thesis: 
+* Phase I Thesis
+* Phase II Thesis 
 
 ---
 
