@@ -195,15 +195,17 @@ The system follows a **multi-layer architecture**:
 
 For detailed theoretical background, methodology, and results, refer to:
 
-* 📄 Phase I Thesis: 
-* 📄 Phase II Thesis: 
+* 📄 Phase I Thesis Document
+* 📄 Phase II Thesis Document
 
 ---
 
 ## 👨‍💻 Author
 
 **HARIRAM S**
+
 M.E. Computer Science and Engineering
+
 Anna University, Chennai
 
 ---
