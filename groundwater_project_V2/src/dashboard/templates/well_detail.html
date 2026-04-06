@@ -1,0 +1,230 @@
+{% extends "base.html" %}
+
+{% block title %}Well {{ well_id }} Details{% endblock %}
+{% block heading %}Well {{ well_id }} - {{ well.village }}, {{ well.block }}{% endblock %}
+
+{% block content %}
+<!-- Well Information & Alerts Row -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-info-circle me-2"></i>Well Information
+            </div>
+            <div class="card-body">
+                <p><strong>Well ID:</strong> {{ well.well_id }}</p>
+                <p><strong>Village:</strong> {{ well.village }}</p>
+                <p><strong>Block:</strong> {{ well.block }}</p>
+                <p><strong>Coordinates:</strong> {{ "%.4f"|format(well.lat) }}, {{ "%.4f"|format(well.lon) }}</p>
+                <p><strong>Last Reading:</strong> {{ well.timestamp }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card prediction-card">
+            <div class="card-header">
+                <i class="fas fa-chart-line me-2"></i>Next Month Prediction (Water Level)
+            </div>
+            <div class="card-body">
+                {% if pred %}
+                <h3 class="display-4">{{ "%.2f"|format(pred) }} m</h3>
+                <p class="text-muted">Predicted for next month ± {{ "%.2f"|format(2 * pred_std) }} m (95% CI)</p>
+                {% else %}
+                <p class="text-muted">Insufficient data for prediction</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alerts Section -->
+{% if alerts %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card alert-card">
+            <div class="card-header">
+                <i class="fas fa-exclamation-circle me-2"></i>Active Alerts
+            </div>
+            <div class="card-body">
+                <ul class="list-group">
+                    {% for alert in alerts %}
+                    <li class="list-group-item list-group-item-danger">{{ alert }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Current Readings Cards -->
+<div class="row mb-4">
+    {% set readings = [
+    ('water_level', 'Water Level', 'm', well.water_level),
+    ('ph', 'pH', '', well.ph),
+    ('ec', 'EC', 'µS/cm', well.ec),
+    ('tds', 'TDS', 'mg/L', well.tds),
+    ('turbidity', 'Turbidity', 'NTU', well.turbidity),
+    ('temperature', 'Temperature', '°C', well.temperature)
+    ] %}
+    {% for id, label, unit, value in readings %}
+    <div class="col-md-4 col-lg-2 mb-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h6 class="card-subtitle mb-2 text-muted">{{ label }}</h6>
+                <h3 class="card-title">{{ "%.2f"|format(value) if value is number else value }} {{ unit }}</h3>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Tabs for Advanced Analysis -->
+<ul class="nav nav-tabs" id="wellTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button"
+            role="tab">Overview</button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="correlations-tab" data-bs-toggle="tab" data-bs-target="#correlations" type="button"
+            role="tab">Correlations</button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="trends-tab" data-bs-toggle="tab" data-bs-target="#trends" type="button"
+            role="tab">Trends</button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="seasonal-tab" data-bs-toggle="tab" data-bs-target="#seasonal" type="button"
+            role="tab">Seasonal Decomposition</button>
+    </li>
+    {% if anomaly_detected %}
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="anomaly-tab" data-bs-toggle="tab" data-bs-target="#anomaly" type="button"
+            role="tab">Anomaly Explanation</button>
+    </li>
+    {% endif %}
+</ul>
+
+<div class="tab-content mt-3">
+    <!-- Overview Tab: Time Series Graphs -->
+    <div class="tab-pane fade show active" id="overview" role="tabpanel">
+        {% for param, fig_json in figs.items() %}
+        <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>{{ param.replace('_',' ')|title }} Time Series</span>
+                <button class="btn btn-sm btn-outline-primary"
+                    onclick="downloadPlot('plot-{{ param }}', '{{ param }}')">
+                    <i class="fas fa-download me-1"></i> PNG
+                </button>
+            </div>
+            <div class="card-body">
+                <div id="plot-{{ param }}"></div>
+            </div>
+        </div>
+        <script>
+            Plotly.newPlot('plot-{{ param }}', {{ fig_json| safe }}.data, {{ fig_json| safe }}.layout);
+        </script>
+        {% endfor %}
+    </div>
+
+    <!-- Correlations Tab: Scatter Matrix -->
+    <div class="tab-pane fade" id="correlations" role="tabpanel">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>Scatter Matrix of Parameters</span>
+                <button class="btn btn-sm btn-outline-primary"
+                    onclick="downloadPlot('corr-plot', 'correlation_matrix')">
+                    <i class="fas fa-download me-1"></i> PNG
+                </button>
+            </div>
+            <div class="card-body">
+                <div id="corr-plot"></div>
+            </div>
+        </div>
+        <script>
+            Plotly.newPlot('corr-plot', {{ corr_fig| safe }}.data, {{ corr_fig| safe }}.layout);
+        </script>
+    </div>
+
+    <!-- Trends Tab: Linear Trend Lines -->
+    <div class="tab-pane fade" id="trends" role="tabpanel">
+        {% for param, fig_json in trend_figs.items() %}
+        <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>{{ param.replace('_',' ')|title }} Trend</span>
+                <button class="btn btn-sm btn-outline-primary"
+                    onclick="downloadPlot('trend-{{ param }}', 'trend_{{ param }}')">
+                    <i class="fas fa-download me-1"></i> PNG
+                </button>
+            </div>
+            <div class="card-body">
+                <div id="trend-{{ param }}"></div>
+            </div>
+        </div>
+        <script>
+            Plotly.newPlot('trend-{{ param }}', {{ fig_json| safe }}.data, {{ fig_json| safe }}.layout);
+        </script>
+        {% endfor %}
+    </div>
+
+    <!-- Seasonal Decomposition Tab -->
+    <div class="tab-pane fade" id="seasonal" role="tabpanel">
+        {% if seasonal_figs %}
+        {% for param, fig_json in seasonal_figs.items() %}
+        <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>{{ param.replace('_',' ')|title }} Decomposition</span>
+                <button class="btn btn-sm btn-outline-primary"
+                    onclick="downloadPlot('seasonal-{{ param }}', 'seasonal_{{ param }}')">
+                    <i class="fas fa-download me-1"></i> PNG
+                </button>
+            </div>
+            <div class="card-body">
+                <div id="seasonal-{{ param }}"></div>
+            </div>
+        </div>
+        <script>
+            Plotly.newPlot('seasonal-{{ param }}', {{ fig_json| safe }}.data, {{ fig_json| safe }}.layout);
+        </script>
+        {% endfor %}
+        {% else %}
+        <p class="text-muted">Not enough data for seasonal decomposition (need at least 24 months).</p>
+        {% endif %}
+    </div>
+
+    <!-- Anomaly Explanation Tab -->
+    {% if anomaly_detected %}
+    <div class="tab-pane fade" id="anomaly" role="tabpanel">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-search me-2"></i>Why was this flagged as an anomaly?
+            </div>
+            <div class="card-body">
+                {{ shap_html|safe }}
+                <p class="text-muted mt-2">SHAP values show contribution of each feature to the anomaly score.</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Back to Map Link -->
+<div class="mt-3">
+    <a href="{{ url_for('index') }}" class="btn btn-secondary"><i class="fas fa-arrow-left me-2"></i>Back to
+        Dashboard</a>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Download plot function (used by buttons)
+    function downloadPlot(divId, filename) {
+        Plotly.downloadImage(divId, {
+            format: 'png',
+            width: 800,
+            height: 600,
+            filename: filename
+        });
+    }
+</script>
+{% endblock %}

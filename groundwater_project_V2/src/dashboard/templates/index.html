@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Home{% endblock %}
+{% block heading %}Groundwater Monitoring Dashboard - Tiruppur Region{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <h5 class="card-title">Total Wells</h5>
+                <p class="card-text display-6">{{ total_wells }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <h5 class="card-title">Avg Water Level</h5>
+                <p class="card-text display-6">{{ "%.2f"|format(avg_water_level) }} m</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-warning">
+            <div class="card-body">
+                <h5 class="card-title">Wells with Alerts</h5>
+                <p class="card-text display-6">{{ wells_with_alerts }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-info">
+            <div class="card-body">
+                <h5 class="card-title">Blocks Covered</h5>
+                <p class="card-text display-6">{{ blocks|length }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Aggregated Alerts Cards -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-exclamation-circle me-2"></i> Aggregated Alerts by Block
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for block, count in alert_counts.items() %}
+                    <div class="col-md-2 mb-2">
+                        <div class="alert alert-danger p-2 text-center">
+                            <strong>{{ block }}</strong><br>{{ count }} alert(s)
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Map -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-map-marked-alt me-2"></i> Well Locations (colored by water level)
+            </div>
+            <div class="card-body p-0">
+                <div id="home-map" style="height: 500px;">{{ map_html|safe }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Alerts Table -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-history me-2"></i> Recent Alerts
+            </div>
+            <div class="card-body">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Well ID</th>
+                            <th>Parameter</th>
+                            <th>Value</th>
+                            <th>Threshold</th>
+                            <th>Message</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for alert in recent_alerts %}
+                        <tr>
+                            <td>{{ alert.timestamp }}</td>
+                            <td><a href="{{ url_for('well_detail', well_id=alert.well_id) }}">{{ alert.well_id }}</a>
+                            </td>
+                            <td>{{ alert.parameter }}</td>
+                            <td>{{ "%.2f"|format(alert.value) if alert.value is number else alert.value }}</td>
+                            <td>{{ alert.threshold }}</td>
+                            <td>{{ alert.message }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

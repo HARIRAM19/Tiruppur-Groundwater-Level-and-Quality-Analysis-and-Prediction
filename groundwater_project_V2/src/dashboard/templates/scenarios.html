@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Scenario Simulation{% endblock %}
+{% block heading %}What-If Analysis & Scenario Simulation{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-sliders-h me-2"></i>Parameters
+            </div>
+            <div class="card-body">
+                <form id="scenarioForm">
+                    <div class="mb-3">
+                        <label>Well</label>
+                        <select id="scenarioWell" class="form-select">
+                            {% for well in wells %}
+                            <option value="{{ well.well_id }}">{{ well.well_id }} - {{ well.village }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label>Pumping Factor (relative to baseline)</label>
+                        <input type="range" id="pumping" class="form-range" min="0.5" max="2.0" step="0.1" value="1.0">
+                        <span id="pumpingVal">1.0</span>
+                    </div>
+                    <div class="mb-3">
+                        <label>Rainfall Factor</label>
+                        <input type="range" id="rainfall" class="form-range" min="0.5" max="2.0" step="0.1" value="1.0">
+                        <span id="rainfallVal">1.0</span>
+                    </div>
+                    <button type="button" id="runScenario" class="btn btn-primary">Run Simulation</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-chart-line me-2"></i>Predicted Impact
+            </div>
+            <div class="card-body">
+                <div id="scenarioPlot"></div>
+                <p class="mt-2" id="scenarioResult"></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.getElementById('pumping').addEventListener('input', function (e) {
+        document.getElementById('pumpingVal').innerText = e.target.value;
+    });
+    document.getElementById('rainfall').addEventListener('input', function (e) {
+        document.getElementById('rainfallVal').innerText = e.target.value;
+    });
+
+    document.getElementById('runScenario').addEventListener('click', function () {
+        var wellId = document.getElementById('scenarioWell').value;
+        var pumping = document.getElementById('pumping').value;
+        var rainfall = document.getElementById('rainfall').value;
+        fetch('/api/scenario', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ well_id: parseInt(wellId), pumping: parseFloat(pumping), rainfall: parseFloat(rainfall) })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.predicted) {
+                    document.getElementById('scenarioResult').innerHTML = `Predicted water level: <strong>${data.predicted.toFixed(2)} m</strong>`;
+                    // Update plot
+                    Plotly.newPlot('scenarioPlot', [{
+                        x: ['Baseline', 'Scenario'],
+                        y: [15.0, data.predicted], // Replace with actual baseline
+                        type: 'bar'
+                    }], { title: 'Water Level Comparison' });
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            });
+    });
+</script>
+{% endblock %}

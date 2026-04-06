@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+
+{% block title %}Model Hub{% endblock %}
+{% block heading %}Model Performance & Comparison{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-cogs me-2"></i>Model Control</span>
+                <form method="post" action="{{ url_for('retrain') }}">
+                    <button type="submit" class="btn btn-warning btn-sm"
+                        onclick="return confirm('Start retraining? This may take several minutes.')">
+                        <i class="fas fa-sync-alt me-1"></i> Retrain Models
+                    </button>
+                </form>
+            </div>
+            <div class="card-body">
+                <p>Last training: {{ metrics.timestamp if metrics and metrics.timestamp else 'Not available' }}</p>
+                <p class="text-muted small">Check <code>data/retrain_log.txt</code> for training logs.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<ul class="nav nav-tabs" id="modelTabs" role="tablist">
+    <li class="nav-item"><button class="nav-link active" id="cnn-tab" data-bs-toggle="tab"
+            data-bs-target="#cnn">CNN-LSTM</button></li>
+    <li class="nav-item"><button class="nav-link" id="lstm-tab" data-bs-toggle="tab"
+            data-bs-target="#lstm">LSTM</button></li>
+    <li class="nav-item"><button class="nav-link" id="ensemble-tab" data-bs-toggle="tab"
+            data-bs-target="#ensemble">Ensemble</button></li>
+    <li class="nav-item"><button class="nav-link" id="anomaly-tab" data-bs-toggle="tab"
+            data-bs-target="#anomaly">Anomaly Detection</button></li>
+</ul>
+
+<div class="tab-content mt-3">
+    <!-- CNN-LSTM -->
+    <div class="tab-pane fade show active" id="cnn">
+        <div class="card">
+            <div class="card-header">CNN-LSTM Performance</div>
+            <div class="card-body">
+                {% if metrics and metrics.cnn %}
+                {% if metrics.cnn.overall %}
+                <p><strong>Overall MAE:</strong> {{ "%.3f"|format(metrics.cnn.overall.mae) }} m</p>
+                <p><strong>Overall RMSE:</strong> {{ "%.3f"|format(metrics.cnn.overall.rmse) }} m</p>
+                {% else %}
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Well ID</th>
+                            <th>MAE (m)</th>
+                            <th>RMSE (m)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for well_id, m in metrics.cnn.items() %}
+                        <tr>
+                            <td><a href="{{ url_for('well_detail', well_id=well_id) }}">{{ well_id }}</a></td>
+                            <td>{{ "%.3f"|format(m.mae) }}</td>
+                            <td>{{ "%.3f"|format(m.rmse) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% endif %}
+                {% else %}
+                <p class="text-muted">No metrics available. Please retrain the model.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- LSTM (similar) -->
+    <div class="tab-pane fade" id="lstm">
+        <div class="card">
+            <div class="card-header">LSTM Performance</div>
+            <div class="card-body">
+                {% if metrics and metrics.lstm %}
+                {% if metrics.lstm.overall %}
+                <p><strong>Overall MAE:</strong> {{ "%.3f"|format(metrics.lstm.overall.mae) }} m</p>
+                <p><strong>Overall RMSE:</strong> {{ "%.3f"|format(metrics.lstm.overall.rmse) }} m</p>
+                {% else %}
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Well ID</th>
+                            <th>MAE (m)</th>
+                            <th>RMSE (m)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for well_id, m in metrics.lstm.items() %}
+                        <tr>
+                            <td><a href="{{ url_for('well_detail', well_id=well_id) }}">{{ well_id }}</a></td>
+                            <td>{{ "%.3f"|format(m.mae) }}</td>
+                            <td>{{ "%.3f"|format(m.rmse) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% endif %}
+                {% else %}
+                <p class="text-muted">No metrics available. Please retrain the model.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Ensemble -->
+    <div class="tab-pane fade" id="ensemble">
+        <div class="card">
+            <div class="card-header">Ensemble Predictions (average of models)</div>
+            <div class="card-body">
+                <p>Select a well to see ensemble vs individual models:</p>
+                <select id="ensembleWellSelect" class="form-select w-25">
+                    {% for well in wells %}
+                    <option value="{{ well.well_id }}">{{ well.well_id }} - {{ well.village }}</option>
+                    {% endfor %}
+                </select>
+                <div id="ensemblePlot" class="mt-3"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Anomaly Detection -->
+    <div class="tab-pane fade" id="anomaly">
+        <div class="card">
+            <div class="card-header">Anomaly Detection Performance</div>
+            <div class="card-body">
+                {% if metrics and metrics.anomaly %}
+                <p><strong>Precision:</strong> {{ metrics.anomaly.precision }}</p>
+                <p><strong>Recall:</strong> {{ metrics.anomaly.recall }}</p>
+                <p><strong>F1 Score:</strong> {{ metrics.anomaly.f1 }}</p>
+                {% else %}
+                <img src="https://via.placeholder.com/400x300?text=Confusion+Matrix" class="img-fluid"
+                    alt="Confusion Matrix">
+                <p class="mt-2">Precision: 0.92, Recall: 0.88, F1: 0.90</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Model Comparison Graph -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-chart-bar me-2"></i>Model Comparison for Selected Well
+            </div>
+            <div class="card-body">
+                <select id="compareWellSelect" class="form-select w-25 mb-3">
+                    {% for well in wells %}
+                    <option value="{{ well.well_id }}">{{ well.well_id }} - {{ well.village }}</option>
+                    {% endfor %}
+                </select>
+                <div id="modelComparePlot"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Placeholder for ensemble plot
+    document.getElementById('ensembleWellSelect').addEventListener('change', function () {
+        var wellId = this.value;
+        // In a real implementation, fetch data from an API
+        Plotly.newPlot('ensemblePlot', [{
+            x: ['Jan', 'Feb', 'Mar', 'Apr'],
+            y: [10, 12, 11, 13],
+            type: 'scatter',
+            name: 'Actual'
+        }, {
+            x: ['Jan', 'Feb', 'Mar', 'Apr'],
+            y: [9.8, 12.5, 11.2, 12.8],
+            type: 'scatter',
+            name: 'CNN-LSTM'
+        }, {
+            x: ['Jan', 'Feb', 'Mar', 'Apr'],
+            y: [10.1, 12.1, 10.9, 13.2],
+            type: 'scatter',
+            name: 'Ensemble'
+        }], { title: 'Model Predictions vs Actual' });
+    });
+
+    // Placeholder for comparison plot
+    document.getElementById('compareWellSelect').addEventListener('change', function () {
+        var wellId = this.value;
+        Plotly.newPlot('modelComparePlot', [{
+            x: ['CNN-LSTM', 'LSTM', 'Ensemble'],
+            y: [0.25, 0.28, 0.23],
+            type: 'bar',
+            name: 'MAE'
+        }], { title: 'Model MAE Comparison' });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Compare Wells{% endblock %}
+{% block heading %}Cross-Well Comparison{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-filter me-2"></i>Select Wells
+            </div>
+            <div class="card-body">
+                <form method="get" action="{{ url_for('compare_page') }}">
+                    <select name="wells" multiple class="form-select" size="10">
+                        {% for well in all_wells %}
+                        <option value="{{ well.well_id }}" {% if well.well_id|string in request.args.getlist('wells')
+                            %}selected{% endif %}>
+                            {{ well.well_id }} - {{ well.village }} ({{ well.block }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <button type="submit" class="btn btn-primary mt-3">Compare</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-info-circle me-2"></i>Instructions
+            </div>
+            <div class="card-body">
+                <p>Select multiple wells (hold Ctrl/Cmd) and click Compare. You'll see time series overlays for each
+                    parameter.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if graphs %}
+<ul class="nav nav-tabs" id="compareTabs" role="tablist">
+    {% for param in graphs.keys() %}
+    <li class="nav-item" role="presentation">
+        <button class="nav-link {% if loop.first %}active{% endif %}" id="{{ param }}-tab" data-bs-toggle="tab"
+            data-bs-target="#{{ param }}" type="button" role="tab">{{ param.replace('_',' ')|title }}</button>
+    </li>
+    {% endfor %}
+</ul>
+<div class="tab-content mt-3" id="compareTabsContent">
+    {% for param, fig_json in graphs.items() %}
+    <div class="tab-pane fade {% if loop.first %}show active{% endif %}" id="{{ param }}" role="tabpanel">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between">
+                {{ param }}
+                <button class="btn btn-sm btn-outline-primary" onclick="downloadPlot('plot-{{ param }}')"><i
+                        class="fas fa-download"></i> PNG</button>
+            </div>
+            <div class="card-body">
+                <div id="plot-{{ param }}"></div>
+            </div>
+        </div>
+    </div>
+    <script>Plotly.newPlot('plot-{{ param }}', {{ fig_json| safe }}.data, {{ fig_json| safe }}.layout);</script>
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function downloadPlot(divId) {
+        Plotly.downloadImage(divId, { format: 'png', width: 800, height: 600, filename: 'comparison' });
+    }
+</script>
+{% endblock %}

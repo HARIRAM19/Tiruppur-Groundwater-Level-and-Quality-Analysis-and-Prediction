@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}Alerts & Thresholds{% endblock %}
+{% block heading %}Alert Management{% endblock %}
+
+{% block content %}
+<ul class="nav nav-tabs" id="alertTabs" role="tablist">
+    <li class="nav-item"><button class="nav-link active" id="history-tab" data-bs-toggle="tab"
+            data-bs-target="#history">Alert History</button></li>
+    <li class="nav-item"><button class="nav-link" id="settings-tab" data-bs-toggle="tab"
+            data-bs-target="#settings">Threshold Settings</button></li>
+    <li class="nav-item"><button class="nav-link" id="aggregated-tab" data-bs-toggle="tab"
+            data-bs-target="#aggregated">Aggregated Alerts</button></li>
+</ul>
+
+<div class="tab-content mt-3">
+    <!-- History -->
+    <div class="tab-pane fade show active" id="history">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-list me-2"></i>All Alerts
+            </div>
+            <div class="card-body">
+                <table class="table table-striped" id="alertTable">
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Well</th>
+                            <th>Parameter</th>
+                            <th>Value</th>
+                            <th>Threshold</th>
+                            <th>Message</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for alert in alerts %}
+                        <tr>
+                            <td>{{ alert.timestamp }}</td>
+                            <td><a href="{{ url_for('well_detail', well_id=alert.well_id) }}">{{ alert.well_id }}</a>
+                            </td>
+                            <td>{{ alert.parameter }}</td>
+                            <td>{{ "%.2f"|format(alert.value) if alert.value is number else alert.value }}</td>
+                            <td>{{ alert.threshold }}</td>
+                            <td>{{ alert.message }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings -->
+    <div class="tab-pane fade" id="settings">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-sliders-h me-2"></i>Custom Thresholds
+            </div>
+            <div class="card-body">
+                <form method="post" action="{{ url_for('alerts_settings') }}">
+                    <div class="row mb-3">
+                        <div class="col-md-4"><label>Water Level Min (m)</label><input type="number" step="0.1"
+                                name="water_level_low" class="form-control" value="{{ thresholds.water_level_low }}">
+                        </div>
+                        <div class="col-md-4"><label>Water Level Max (m)</label><input type="number" step="0.1"
+                                name="water_level_high" class="form-control" value="{{ thresholds.water_level_high }}">
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4"><label>pH Min</label><input type="number" step="0.1" name="ph_low"
+                                class="form-control" value="{{ thresholds.ph_low }}"></div>
+                        <div class="col-md-4"><label>pH Max</label><input type="number" step="0.1" name="ph_high"
+                                class="form-control" value="{{ thresholds.ph_high }}"></div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4"><label>TDS Max (mg/L)</label><input type="number" step="10"
+                                name="tds_high" class="form-control" value="{{ thresholds.tds_high }}"></div>
+                        <div class="col-md-4"><label>EC Max (µS/cm)</label><input type="number" step="10" name="ec_high"
+                                class="form-control" value="{{ thresholds.ec_high }}"></div>
+                        <div class="col-md-4"><label>Turbidity Max (NTU)</label><input type="number" step="1"
+                                name="turbidity_high" class="form-control" value="{{ thresholds.turbidity_high }}">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save Thresholds</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Aggregated -->
+    <div class="tab-pane fade" id="aggregated">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-chart-pie me-2"></i>Alerts by Block & Parameter
+            </div>
+            <div class="card-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Block</th>
+                            <th>Parameter</th>
+                            <th>Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in agg %}
+                        <tr>
+                            <td>{{ item.block }}</td>
+                            <td>{{ item.parameter }}</td>
+                            <td>{{ item.count }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function () {
+        $('#alertTable').DataTable(); // if you include DataTables
+    });
+</script>
+{% endblock %}

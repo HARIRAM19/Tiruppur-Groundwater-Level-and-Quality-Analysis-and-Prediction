@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Well Report {{ well.well_id }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+        }
+
+        h1 {
+            color: #2c3e50;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .header {
+            background-color: #3498db;
+            color: white;
+            padding: 10px;
+        }
+
+        .section {
+            margin-top: 30px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>Groundwater Well Report</h1>
+        <p>Generated on {{ now().strftime('%Y-%m-%d %H:%M') }}</p>
+    </div>
+    <div class="section">
+        <h2>Well Information</h2>
+        <p><strong>Well ID:</strong> {{ well.well_id }}</p>
+        <p><strong>Village:</strong> {{ well.village }}</p>
+        <p><strong>Block:</strong> {{ well.block }}</p>
+        <p><strong>Coordinates:</strong> {{ "%.4f"|format(well.lat) }}, {{ "%.4f"|format(well.lon) }}</p>
+        <p><strong>Latest Reading:</strong> {{ well.timestamp }}</p>
+    </div>
+    <div class="section">
+        <h2>Latest Parameters</h2>
+        <table>
+            <tr>
+                <th>Parameter</th>
+                <th>Value</th>
+            </tr>
+            <tr>
+                <td>Water Level</td>
+                <td>{{ "%.2f"|format(well.water_level) }} m</td>
+            </tr>
+            <tr>
+                <td>pH</td>
+                <td>{{ "%.2f"|format(well.ph) }}</td>
+            </tr>
+            <tr>
+                <td>EC</td>
+                <td>{{ "%.0f"|format(well.ec) }} µS/cm</td>
+            </tr>
+            <tr>
+                <td>TDS</td>
+                <td>{{ "%.0f"|format(well.tds) }} mg/L</td>
+            </tr>
+            <tr>
+                <td>Turbidity</td>
+                <td>{{ "%.1f"|format(well.turbidity) }} NTU</td>
+            </tr>
+            <tr>
+                <td>Temperature</td>
+                <td>{{ "%.1f"|format(well.temperature) }} °C</td>
+            </tr>
+        </table>
+    </div>
+    <div class="section">
+        <h2>Recent History (last 10 readings)</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Water Level</th>
+                    <th>pH</th>
+                    <th>EC</th>
+                    <th>TDS</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for idx, row in data.iterrows() %}
+                <tr>
+                    <td>{{ row.timestamp }}</td>
+                    <td>{{ "%.2f"|format(row.water_level) }}</td>
+                    <td>{{ "%.2f"|format(row.ph) }}</td>
+                    <td>{{ "%.0f"|format(row.ec) }}</td>
+                    <td>{{ "%.0f"|format(row.tds) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+
+</html>

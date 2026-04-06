@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}Data Management{% endblock %}
+{% block heading %}Import / Export Data{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Export Section -->
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-download me-2"></i>Export Data
+            </div>
+            <div class="card-body">
+                <form method="post" action="{{ url_for('export_data') }}">
+                    <div class="mb-3">
+                        <label>Select Wells (leave blank for all)</label>
+                        <select name="wells" multiple class="form-select" size="5">
+                            {% for well in wells %}
+                            <option value="{{ well.well_id }}">{{ well.well_id }} - {{ well.village }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col"><label>Start Date</label><input type="date" name="start_date"
+                                class="form-control"></div>
+                        <div class="col"><label>End Date</label><input type="date" name="end_date" class="form-control">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Export CSV</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload Section -->
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-upload me-2"></i>Bulk Upload (CSV)
+            </div>
+            <div class="card-body">
+                <form method="post" action="{{ url_for('upload_data') }}" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label>CSV File</label>
+                        <input type="file" name="file" accept=".csv" class="form-control" required>
+                    </div>
+                    <p class="text-muted small">Required columns: well_id, timestamp, water_level, ph, ec, tds,
+                        turbidity, temperature</p>
+                    <button type="submit" class="btn btn-success">Upload & Append</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Data Quality Flags Demo -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-check-circle me-2"></i>Data Quality Flags (Sample)
+            </div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Well</th>
+                            <th>Date</th>
+                            <th>Water Level</th>
+                            <th>Flag</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td>2025-01-15</td>
+                            <td>12.3</td>
+                            <td><span class="badge bg-success">Original</span></td>
+                        </tr>
+                        <tr>
+                            <td>1</td>
+                            <td>2025-01-16</td>
+                            <td>13.1</td>
+                            <td><span class="badge bg-warning">Imputed</span></td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>2025-01-15</td>
+                            <td>25.7</td>
+                            <td><span class="badge bg-danger">Outlier corrected</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

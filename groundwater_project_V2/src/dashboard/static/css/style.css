@@ -1,0 +1,71 @@
+/* Additional custom styles beyond Bootstrap */
+.sidebar {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #2c3e50, #1e2a36);
+    color: white;
+}
+
+.sidebar a {
+    color: #ecf0f1;
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    display: block;
+    border-radius: 0.25rem;
+    transition: background 0.3s;
+}
+
+.sidebar a:hover {
+    background: #34495e;
+}
+
+.sidebar .active {
+    background: #007bff;
+}
+
+.card {
+    border: none;
+    border-radius: 1rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.card-header {
+    background: transparent;
+    border-bottom: 2px solid #007bff;
+    font-weight: 600;
+}
+
+.alert-card {
+    border-left: 5px solid #dc3545;
+}
+
+.prediction-card {
+    border-left: 5px solid #28a745;
+}
+
+.well-map {
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.nav-tabs .nav-link.active {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+.nav-tabs .nav-link {
+    color: #007bff;
+}
+
+/* Map container */
+#interpolationMap,
+#home-map {
+    height: 500px;
+    width: 100%;
+}
