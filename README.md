@@ -217,3 +217,20 @@ This project demonstrates a transition from **research-driven modeling (Phase I)
 ---
 
 > 🌱 *“Data-driven intelligence for sustainable water future.”*
+
+
+
+This repository contains the published paper and implementation.
+
+## Publication
+Title: Assessing and Forecasting Groundwater Resources in the Context of Climate Change Using AI Techniques for the Industry Zones in Tiruppur, India
+Journal: World - MDPI
+Volume: 7
+Issue: 5
+DOI: [https://doi.org/10.3390/world7050079](https://doi.org/10.3390/world7050079)
+
+## Abstract
+Groundwater systems in semi-arid and industrial regions are increasingly affected by climate-driven non-stationarity and anthropogenic pressure, challenging conventional forecasting approaches. This study develops and evaluates an integrated artificial intelligence framework designed to minimize piezometric head residual dispersion under non-stationary hydroclimatic conditions. The proposed methodology combines Improved Complete Ensemble Empirical Mode Decomposition with Adaptive Noise (ICEEMDAN) and Variational Mode Decomposition (VMD) with a Slime Mould Algorithm–optimized Long Short-Term Memory (SMA–LSTM) model and a CNN–LSTM architecture, which are dynamically fused using an Adaptive Weighting Model (AWM). The framework was applied to long-term groundwater level (1994–2024), groundwater quality (2017–2023), and meteorological datasets to evaluate the predictive robustness across climatic variability regimes. The proposed ensemble achieved a mean absolute error of 0.267 m, root mean square error of 0.429 m, coefficient of determination (R2) of 0.948, and Nash–Sutcliffe efficiency of 0.938, representing substantial residual reduction compared to baseline deep learning models. Residual diagnostics confirmed minimized peak deviations and stable performance under non-stationary conditions. Scenario-based simulations driven by CMIP6 climate projections indicate increasing groundwater stress under future warming trajectories, with amplified variability and declining recharge signals. These findings demonstrate that multi-stage signal decomposition coupled with metaheuristic optimization and adaptive ensemble learning significantly enhances predictive stability and residual minimization in climate-sensitive aquifer systems. The proposed framework provides a transferable, climate-resilient decision-support tool for sustainable groundwater management in industrial and semi-arid regions.
+
+## Citation
+Sankaran, H.; Krishnan, S.; Madurai Chidambaram, S. Assessing and Forecasting Groundwater Resources in the Context of Climate Change Using AI Techniques for the Industry Zones in Tiruppur, India. World 2026, 7, 79. https://doi.org/10.3390/world7050079
