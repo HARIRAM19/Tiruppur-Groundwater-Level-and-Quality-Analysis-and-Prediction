@@ -223,10 +223,10 @@ This project demonstrates a transition from **research-driven modeling (Phase I)
 This repository contains the published paper and implementation.
 
 ## Publication
-Title: Assessing and Forecasting Groundwater Resources in the Context of Climate Change Using AI Techniques for the Industry Zones in Tiruppur, India
-Journal: World - MDPI
-Volume: 7
-Issue: 5
+Title: Assessing and Forecasting Groundwater Resources in the Context of Climate Change Using AI Techniques for the Industry Zones in Tiruppur, India  
+Journal: World - MDPI  
+Volume: 7  
+Issue: 5  
 DOI: [https://doi.org/10.3390/world7050079](https://doi.org/10.3390/world7050079)
 
 ## Abstract
